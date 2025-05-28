@@ -1,35 +1,46 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from "react";
+import { AsyncPaginate } from "react-select-async-paginate";
+
+const PAGE_SIZE = 10;
+
+const loadOptions = async (search, loadedOptions, { page }) => {
+  const response = await fetch(
+    `https://jsonplaceholder.typicode.com/posts?_page=${page}&_limit=${PAGE_SIZE}`
+  );
+  const posts = await response.json();
+
+  const hasMore = posts.length === PAGE_SIZE;
+
+  const options = posts.map((post) => ({
+    label: post.title,
+    value: post.id,
+  }));
+
+  return {
+    options,
+    hasMore,
+    additional: {
+      page: page + 1,
+    },
+  };
+};
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [value, setValue] = useState(null);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div style={{ maxWidth: 600, margin: "100px auto" }}>
+      <h2>Select a Post</h2>
+      <AsyncPaginate
+        value={value}
+        loadOptions={loadOptions}
+        onChange={setValue}
+        additional={{ page: 1 }}
+        isClearable
+        placeholder="Scroll to load more posts..."
+      />
+    </div>
+  );
 }
 
-export default App
+export default App;
